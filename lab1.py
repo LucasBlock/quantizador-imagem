@@ -56,7 +56,6 @@ def getGrayscale(args):
     except(InvalidGrayScale):
         howToUse()
         quit()
-    return args.grayscale
 
 def getImage(args):
     try:
@@ -65,10 +64,10 @@ def getImage(args):
             raise InvalidImage()
         
         return args.image
+
     except(InvalidImage):
         howToUse()
         quit()
-    return args.image
 
 def getPercent(args):
     try:
@@ -79,7 +78,6 @@ def getPercent(args):
     except(InvalidPercent):
         howToUse()
         quit()
-    return args.percent
 
 def getArguments():
     arguments = {}
@@ -89,23 +87,24 @@ def getArguments():
     arguments['percent'] = getPercent
     return arguments
 
-args = defineArguments()
+if __name__ == "__main__":
+    args = defineArguments()
 
-arguments = getArguments()
-method = arguments['method'](args)
-grayscale = arguments['grayscale'](args)
-image_path = arguments['image'](args)
-percent = arguments['percent'](args)
+    arguments = getArguments()
+    method = arguments['method'](args)
+    grayscale = arguments['grayscale'](args)
+    image_path = arguments['image'](args)
+    percent = arguments['percent'](args)
 
-print("O método escolhido foi:  %s" % method)
-print("Imagem escolhida:  %s" % image_path)
-print("Porcentual da amostragem:  %s" % percent)
-print("Escala de níveis de cinza:  %s" % grayscale)
+    print("O método escolhido foi:  %s" % method)
+    print("Imagem escolhida:  %s" % image_path)
+    print("Porcentual da amostragem:  %s" % percent)
+    print("Escala de níveis de cinza:  %s" % grayscale)
 
-image = cv2.imread(image_path)
-gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+    image = cv2.imread(image_path)
+    gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
 
-altura, largura = gray.shape[:2]
+    altura, largura = gray.shape[:2]
 
-cv2.imshow('Gray image', gray)
-cv2.waitKey()
+    cv2.imshow('Gray image', gray)
+    cv2.waitKey()
