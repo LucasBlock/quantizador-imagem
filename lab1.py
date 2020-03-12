@@ -2,6 +2,8 @@ import argparse
 import cv2
 import os.path
 from os import path
+import numpy as np
+import math
 
 class InvalidMethod(Exception):
     pass
@@ -51,7 +53,7 @@ def getGrayscale(args):
             print('Invalid greyscale')
             raise InvalidGrayScale()
         
-        return args.grayscale
+        return int(args.grayscale)
     
     except(InvalidGrayScale):
         howToUse()
@@ -74,7 +76,7 @@ def getPercent(args):
         if 0 >= int(args.percent):
             print('Invalid percent')
             raise InvalidPercent()
-        return args.percent
+        return int(args.percent)
     except(InvalidPercent):
         howToUse()
         quit()
@@ -86,6 +88,35 @@ def getArguments():
     arguments['image'] = getImage
     arguments['percent'] = getPercent
     return arguments
+
+def getMaxMinGrayScale(image, altura, largura):
+    values = {}
+    values['max'] = image[0][0]
+    values['min'] = image[0][0]
+    for i in range(altura):
+        for j in range(largura):
+            if (image[i][j] > values['max']):
+                values['max'] = image[i][j]
+            if (image[i][j] < values['min']):
+                values['min'] = image[i][j]
+    return values
+
+def getGroupGrayScale(size, grayscale):
+    return math.ceil(size/grayscale)
+
+def printMatrix(gray, altura, largura):
+    for i in range(altura):
+        for j in range(largura):
+            print('%d ' %gray[i][j], end="")
+        print('')
+
+def removeDuplicates(arrayOfGray, altura, largura):
+    arrayItems = []
+    for i in range(altura):
+        for j in range(largura):
+            if arrayOfGray[i][j] not in arrayItems:
+                arrayItems.append(arrayOfGray[i][j])
+    return arrayItems
 
 if __name__ == "__main__":
     args = defineArguments()
@@ -104,7 +135,17 @@ if __name__ == "__main__":
     image = cv2.imread(image_path)
     gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
 
-    altura, largura = gray.shape[:2]
+    altura = gray.shape[0]
+    largura = gray.shape[1]
+    values = getMaxMinGrayScale(gray, altura, largura)
+    
+    # printMatrix(gray, altura, largura)
+    arrayOfGray = gray.copy()
+    arrayOfGray.sort()
+    arrayItems = removeDuplicates(arrayOfGray, altura, largura)
 
-    cv2.imshow('Gray image', gray)
-    cv2.waitKey()
+    size = len(arrayItems)
+    groupGrayScale = getGroupGrayScale(size, grayscale)
+
+    printMatrix(gray, altura, largura)
+    print(values)
