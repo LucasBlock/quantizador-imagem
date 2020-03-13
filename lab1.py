@@ -73,10 +73,10 @@ def getImage(args):
 
 def getPercent(args):
     try:
-        if 0 >= int(args.percent):
+        if 0 >= float(args.percent):
             print('Invalid percent')
             raise InvalidPercent()
-        return int(args.percent)
+        return float(args.percent)
     except(InvalidPercent):
         howToUse()
         quit()
@@ -88,35 +88,6 @@ def getArguments():
     arguments['image'] = getImage
     arguments['percent'] = getPercent
     return arguments
-
-def getMaxMinGrayScale(image, altura, largura):
-    values = {}
-    values['max'] = image[0][0]
-    values['min'] = image[0][0]
-    for i in range(altura):
-        for j in range(largura):
-            if (image[i][j] > values['max']):
-                values['max'] = image[i][j]
-            if (image[i][j] < values['min']):
-                values['min'] = image[i][j]
-    return values
-
-def getGroupGrayScale(size, grayscale):
-    return math.ceil(size/grayscale)
-
-def printMatrix(gray, altura, largura):
-    for i in range(altura):
-        for j in range(largura):
-            print('%d ' %gray[i][j], end="")
-        print('')
-
-def removeDuplicates(arrayOfGray, altura, largura):
-    arrayItems = []
-    for i in range(altura):
-        for j in range(largura):
-            if arrayOfGray[i][j] not in arrayItems:
-                arrayItems.append(arrayOfGray[i][j])
-    return arrayItems
 
 if __name__ == "__main__":
     args = defineArguments()
@@ -137,15 +108,12 @@ if __name__ == "__main__":
 
     altura = gray.shape[0]
     largura = gray.shape[1]
-    values = getMaxMinGrayScale(gray, altura, largura)
-    
-    # printMatrix(gray, altura, largura)
-    arrayOfGray = gray.copy()
-    arrayOfGray.sort()
-    arrayItems = removeDuplicates(arrayOfGray, altura, largura)
-
-    size = len(arrayItems)
-    groupGrayScale = getGroupGrayScale(size, grayscale)
-
-    printMatrix(gray, altura, largura)
-    print(values)
+    altura_recalculada = math.ceil(altura * percent)
+    largura_recalculada = math.ceil(largura * percent)
+    imagem_resultante = np.zeros((altura_recalculada, largura_recalculada,1), np.uint8)
+    numero = 2**(8-math.log(grayscale, 2))
+    for i in range(altura_recalculada):
+        for j in range(largura_recalculada):
+            imagem_resultante[i][j] = (256/grayscale)*(math.ceil(gray[i][j] / numero) - 1)
+    cv2.imshow('Resultado', imagem_resultante)
+    cv2.waitKey()
