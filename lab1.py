@@ -4,6 +4,7 @@ import os.path
 from os import path
 import numpy as np
 import math
+import sys
 
 class InvalidMethod(Exception):
     pass
@@ -21,7 +22,7 @@ def howToUse():
     print('--grayscale ou -g, valores possíveis: x => x > 0')
     print('--image ou -i, Caminho relativo/absoluto da imagem ')
     print('--percent ou -p, Percentual da amostragem: x => x > 0')
-    print('Exemplo python3 lab1.py -m mediana -g 10 -p 10 -i exemplo.png')
+    print('Exemplo python3 lab1.py -m mediana -g 2 -p 0.5 -i exemplo.png')
     print("----------------------------------------------")
 
 
@@ -87,16 +88,45 @@ def getArguments():
     arguments['grayscale'] = getGrayscale
     arguments['image'] = getImage
     arguments['percent'] = getPercent
+    arguments['media'] = mediaSubMatriz
+    arguments['moda'] = modaSubMatriz
+    arguments['mediana'] = medianaSubMatriz
     return arguments
+
+def getProximos(img, i, j, tam):
+    proximos = list()
+    for indice_i in range(tam):
+        for indice_j in range(tam):
+            proximos.append(img[i+indice_i][i+indice_j])
+    return proximos
+
+def mediaSubMatriz(matriz):
+    linhas, colunas = matriz.shape[:2]
+    media = 0
+    for i in range(0, linhas):
+        for j in range(0, colunas):
+            media += matriz[i][j]
+    return media/(linhas*colunas)
+
+def modaSubMatriz(matriz):
+    array = np.concatenate(matriz)
+    counts = np.bincount(array)
+    return np.argmax(counts)
+
+def medianaSubMatriz(matriz):
+    array = np.concatenate(matriz)
+    return np.median(array)
+    
 
 if __name__ == "__main__":
     args = defineArguments()
-
+    
     arguments = getArguments()
     method = arguments['method'](args)
     grayscale = arguments['grayscale'](args)
     image_path = arguments['image'](args)
     percent = arguments['percent'](args)
+    function = arguments[method]
 
     print("O método escolhido foi:  %s" % method)
     print("Imagem escolhida:  %s" % image_path)
@@ -110,10 +140,29 @@ if __name__ == "__main__":
     largura = gray.shape[1]
     altura_recalculada = math.ceil(altura * percent)
     largura_recalculada = math.ceil(largura * percent)
-    imagem_resultante = np.zeros((altura_recalculada, largura_recalculada,1), np.uint8)
+    imagem_resultante = np.zeros((altura_recalculada + 1, largura_recalculada + 1,1), np.uint8)
     numero = 2**(8-math.log(grayscale, 2))
-    for i in range(altura_recalculada):
-        for j in range(largura_recalculada):
-            imagem_resultante[i][j] = (256/grayscale)*(math.ceil(gray[i][j] / numero) - 1)
-    cv2.imshow('Resultado', imagem_resultante)
+    niveis_cinza = math.ceil(256/(grayscale - 1) - 1)
+    
+    
+    
+    resize = 1/percent
+    i = 0
+    ii = 0
+    if resize < 0:
+        multiplicador = int(resize)
+    else:
+        multiplicador = 1
+    while (i < altura):
+        j = 0
+        jj = 0
+        while(j < largura):
+            sub_matriz = gray[int(i):int(i) + multiplicador,int(j):int(j) + multiplicador]
+            imagem_resultante[ii][jj] = function(sub_matriz)
+            imagem_resultante[ii][jj] = niveis_cinza*(math.ceil(imagem_resultante[ii][jj] / numero) - 1)
+            j += resize
+            jj += 1
+        i += resize
+        ii += 1
+    cv2.imshow('Matriz resultado', imagem_resultante)
     cv2.waitKey()
